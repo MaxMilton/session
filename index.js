@@ -6,6 +6,11 @@
  * MIT Licensed
  */
 
+/**
+ * @fileoverview This is a modified version of the original `express-session`
+ * with cookie based sessions replace with url query param sessions instead.
+ */
+
 'use strict';
 
 /**
