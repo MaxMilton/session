@@ -22,7 +22,6 @@ var Buffer = require('safe-buffer').Buffer
 var crypto = require('crypto')
 var debug = require('debug')('express-session');
 var deprecate = require('depd')('express-session');
-var onHeaders = require('on-headers')
 var parseUrl = require('parseurl');
 var uid = require('uid-safe').sync
 
@@ -75,7 +74,6 @@ var defer = typeof setImmediate === 'function'
  * @param {Object} [options]
  * @param {Object} [options.cookie] Options for cookie
  * @param {Function} [options.genid]
- * @param {String} [options.name=connect.sid] Session ID cookie name
  * @param {Boolean} [options.proxy]
  * @param {Boolean} [options.resave] Resave unmodified sessions back to the store
  * @param {Boolean} [options.rolling] Enable/disable rolling session expiration
@@ -96,9 +94,6 @@ function session(options) {
   // get the session id generate function
   var generateId = opts.genid || generateSessionId
 
-  // get the session cookie name
-  var name = opts.name || opts.key || 'connect.sid'
-
   // get the session store
   var store = opts.store || new MemoryStore()
 
@@ -113,9 +108,6 @@ function session(options) {
 
   // get the save uninitialized session option
   var saveUninitializedSession = opts.saveUninitialized
-
-  // get the cookie signing secret
-  var secret = opts.secret
 
   if (typeof generateId !== 'function') {
     throw new TypeError('genid option must be a function');
@@ -137,18 +129,6 @@ function session(options) {
 
   // TODO: switch to "destroy" on next major
   var unsetDestroy = opts.unset === 'destroy'
-
-  if (Array.isArray(secret) && secret.length === 0) {
-    throw new TypeError('secret option array must contain one or more strings');
-  }
-
-  if (secret && !Array.isArray(secret)) {
-    secret = [secret];
-  }
-
-  if (!secret) {
-    deprecate('req.secret; provide secret option');
-  }
 
   // notify user that this store is not
   // meant for a production environment
@@ -197,12 +177,6 @@ function session(options) {
     // pathname mismatch
     var originalPath = parseUrl.original(req).pathname || '/'
     if (originalPath.indexOf(cookieOptions.path || '/') !== 0) return next();
-
-    // ensure a secret is available or bail
-    if (!secret && !req.secret) {
-      next(new Error('secret option required for sessions'));
-      return;
-    }
 
     var originalHash;
     var originalId;
