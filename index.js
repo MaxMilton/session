@@ -20,7 +20,7 @@ var debug = require('debug')('express-session');
 var deprecate = require('depd')('express-session');
 var onHeaders = require('on-headers')
 var parseUrl = require('parseurl');
-var signature = require('cookie-signature')
+// var signature = require('cookie-signature')
 var uid = require('uid-safe').sync
 
 var Cookie = require('./session/cookie')
@@ -523,7 +523,8 @@ function getcookie(req, name, secrets) {
 
     if (raw) {
       if (raw.substr(0, 2) === 's:') {
-        val = unsigncookie(raw.slice(2), secrets);
+        // val = unsigncookie(raw.slice(2), secrets);
+        val = raw.slice(2);
 
         if (val === false) {
           debug('cookie signature invalid');
@@ -535,36 +536,36 @@ function getcookie(req, name, secrets) {
     }
   }
 
-  // back-compat read from cookieParser() signedCookies data
-  if (!val && req.signedCookies) {
-    val = req.signedCookies[name];
+  // // back-compat read from cookieParser() signedCookies data
+  // if (!val && req.signedCookies) {
+  //   val = req.signedCookies[name];
 
-    if (val) {
-      deprecate('cookie should be available in req.headers.cookie');
-    }
-  }
+  //   if (val) {
+  //     deprecate('cookie should be available in req.headers.cookie');
+  //   }
+  // }
 
-  // back-compat read from cookieParser() cookies data
-  if (!val && req.cookies) {
-    raw = req.cookies[name];
+  // // back-compat read from cookieParser() cookies data
+  // if (!val && req.cookies) {
+  //   raw = req.cookies[name];
 
-    if (raw) {
-      if (raw.substr(0, 2) === 's:') {
-        val = unsigncookie(raw.slice(2), secrets);
+  //   if (raw) {
+  //     if (raw.substr(0, 2) === 's:') {
+  //       val = unsigncookie(raw.slice(2), secrets);
 
-        if (val) {
-          deprecate('cookie should be available in req.headers.cookie');
-        }
+  //       if (val) {
+  //         deprecate('cookie should be available in req.headers.cookie');
+  //       }
 
-        if (val === false) {
-          debug('cookie signature invalid');
-          val = undefined;
-        }
-      } else {
-        debug('cookie unsigned')
-      }
-    }
-  }
+  //       if (val === false) {
+  //         debug('cookie signature invalid');
+  //         val = undefined;
+  //       }
+  //     } else {
+  //       debug('cookie unsigned')
+  //     }
+  //   }
+  // }
 
   return val;
 }
@@ -637,8 +638,9 @@ function issecure(req, trustProxy) {
  */
 
 function setcookie(res, name, val, secret, options) {
-  var signed = 's:' + signature.sign(val, secret);
-  var data = cookie.serialize(name, signed, options);
+  // var signed = 's:' + signature.sign(val, secret);
+  // var data = cookie.serialize(name, signed, options);
+  var data = cookie.serialize(name, val, options);
 
   debug('set-cookie %s', data);
 
@@ -648,22 +650,22 @@ function setcookie(res, name, val, secret, options) {
   res.setHeader('Set-Cookie', header)
 }
 
-/**
- * Verify and decode the given `val` with `secrets`.
- *
- * @param {String} val
- * @param {Array} secrets
- * @returns {String|Boolean}
- * @private
- */
-function unsigncookie(val, secrets) {
-  for (var i = 0; i < secrets.length; i++) {
-    var result = signature.unsign(val, secrets[i]);
+// /**
+//  * Verify and decode the given `val` with `secrets`.
+//  *
+//  * @param {String} val
+//  * @param {Array} secrets
+//  * @returns {String|Boolean}
+//  * @private
+//  */
+// function unsigncookie(val, secrets) {
+//   for (var i = 0; i < secrets.length; i++) {
+//     var result = signature.unsign(val, secrets[i]);
 
-    if (result !== false) {
-      return result;
-    }
-  }
+//     if (result !== false) {
+//       return result;
+//     }
+//   }
 
-  return false;
-}
+//   return false;
+// }
